@@ -1,0 +1,67 @@
+tasks:
+    solr.schema.install:
+        help: |
+            Installs a schema and optionally other config files in the remote prefix, and optionally reloads SOLR
+        flags:
+            reload: true
+            simulate: false
+        args:
+            target_env: ? "development"
+        do:
+          - |
+                rsync -rupv $(simulate ? "--dry-run") etc/solr/conf/ $(envs[target_env].ssh):$(solr.envs[target_env].prefix)/$(solr.envs[target_env].core)/conf/
+          - @(if reload && !simulate) @solr.reload
+          - @(if reload && simulate) echo "Would reload core $(solr.envs[target_env].core) at $(target_env)"
+
+    solr.reload:
+        help: |
+            Reloads the solr core at the specified target environment by issuing a RELOAD action to the core's admin
+        args:
+            target_env: ?
+        do: |
+            @(sh ssh(target_env))
+                curl -s "http://$(solr.envs[target_env].host):$(solr.envs[target_env].port)/solr/admin/cores?action=RELOAD&core=$(solr.envs[target_env].core)"
+
+    solr.status:
+        help: |
+            Show the SOLR status as reported by the STATUS action of the core's admin
+        args:
+            target_env: ?
+        do: |
+            @(sh ssh(target_env))
+                curl -s "http://$(solr.envs[target_env].host):$(solr.envs[target_env].port)/solr/admin/cores?action=STATUS&core=$(solr.envs[target_env].core)"
+
+    solr.purge:
+        help: |
+            Purge an entire SOLR status as reported by the STATUS action of the core's admin
+        args:
+            target_env: ?
+        do: |
+            @(sh local ? SHELL : ssh(target_env))
+                cd $(envs[local ? "local" : target_env].root) && php app/console zicht:solr:purge --env=$(target_env)
+
+    solr.reindex:
+        help: |
+            Reindex and optionally purge entries specified in `solr.entities`.
+
+            Note that the purge clears the entire index and should only be used in development.
+        args:
+            target_env: ?
+            entities[]: ? solr.entities
+        flags:
+            local: false
+            purge: false
+        opts:
+            limit: 0
+            offset: 0
+        do:
+            - @(if purge) @solr.purge
+            - |
+                @(sh (local ? SHELL : ssh(target_env)))
+                @(for entity in entities)
+                    cd $(local ? envs["local"].root : envs[target_env].root) && \
+                        php app/console zicht:solr:reindex      \
+                            --offset $(offset)                  \
+                            $(limit ? cat("--limit ", limit))   \
+                            "$(entity)" $(!VERBOSE ? "-q")      \
+                            --env=$(target_env)
