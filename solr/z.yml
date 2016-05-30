@@ -36,6 +36,8 @@ tasks:
             Purge an entire SOLR status as reported by the STATUS action of the core's admin
         args:
             target_env: ?
+        flags:
+            local: false
         do: |
             @(sh local ? SHELL : ssh(target_env))
                 cd $(envs[local ? "local" : target_env].root) && php app/console zicht:solr:purge --env=$(target_env)
