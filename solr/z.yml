@@ -1,3 +1,5 @@
+#@version ">=2.0.1"
+
 tasks:
     solr.schema.install:
         help: |
@@ -65,5 +67,31 @@ tasks:
                         php app/console zicht:solr:reindex      \
                             --offset $(offset)                  \
                             $(limit ? cat("--limit ", limit))   \
-                            "$(entity)" $(!VERBOSE ? "-q")      \
+                            $(escape entity) $(!VERBOSE ? "-q")      \
                             --env=$(target_env)
+
+    solr.batch-reindex:
+        help: |
+            Do a batched reindex of the specified environment.
+
+            This is particularly helpful if the remote environment crashes on the amount of records
+            to index. You need to specify the amount of items per batch and a total number of
+            records.
+        args:
+            target_env: ?
+            total: ?
+            per_batch: ?
+            entities[]: ? solr.entities
+        flags:
+            local: false
+            purge: false
+        do:
+            - @(if purge) @solr.purge
+            - |
+                @(for v in range((total/per_batch)-1, 0)) 
+                $(z.cmd) $(z.opts) solr:reindex $(target_env)   \
+                    $(escape entities)                          \
+                    --no-purge                                  \
+                    $(local ? "--local")                        \
+                    --limit=$(per_batch)                        \
+                    --offset=$(v * per_batch)
