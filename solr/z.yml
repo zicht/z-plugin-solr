@@ -65,7 +65,7 @@ tasks:
                 @(for entity in entities)
                     cd $(local ? envs["local"].root : envs[target_env].root) && \
                         php app/console zicht:solr:reindex      \
-                            --offset $(offset)                  \
+                            $(offset ? cat("--offset ", offset)) \
                             $(limit ? cat("--limit ", limit))   \
                             $(escape entity) $(!VERBOSE ? "-q")      \
                             --env=$(target_env)
