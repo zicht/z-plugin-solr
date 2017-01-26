@@ -3,4 +3,4 @@
 Provides a bridge for commands related to `zicht/solr-bundle`.
 
 # Maintainer(s)
-* Gerard van Helden <gerard@zicht.nl>
+* Rik van der Kemp <rik@zicht.nl>
