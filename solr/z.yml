@@ -11,7 +11,7 @@ tasks:
             target_env: ? "development"
         do:
           - |
-                rsync -avr $(simulate ? "--dry-run") etc/solr/conf/* $(envs[target_env].ssh):$(solr.envs[target_env].prefix)/$(solr.envs[target_env].core)/conf/
+                rsync -vr $(simulate ? "--dry-run") --inplace etc/solr/conf/* $(envs[target_env].ssh):$(solr.envs[target_env].prefix)/$(solr.envs[target_env].core)/conf/
           - @(if reload && !simulate) @solr.reload
           - @(if reload && simulate) echo "Would reload core $(solr.envs[target_env].core) at $(target_env)"
 
