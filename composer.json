@@ -2,7 +2,7 @@
     "name": "zicht/z-plugin-solr",
     "description": "'solr' plugin for Z",
     "require": {
-        "php": ">=5.3.3"
+        "php": ">=5.6"
     },
     "scripts": {
         "post-install-cmd": [],
