@@ -65,11 +65,11 @@ class Plugin extends BasePlugin
 
         $container->method(
             ['solr', 'get', 'ssh'],
-            function (Container $c, $env) {
-                if (null === ($ssh = $c->resolve(sprintf('solr.envs.%s.ssh', $env)))) {
-                    return $c->resolve(sprintf('envs.%s.ssh', $env));
+            function (Container $c, $env) {                
+                if (null !== ($ssh = $c->resolve(sprintf('solr.envs.%s.ssh', $env)))) {
+                    return $ssh;                   
                 } else {
-                    return $ssh;
+                    return $c->resolve(sprintf('envs.%s.ssh', $env));
                 }
             }
         );
