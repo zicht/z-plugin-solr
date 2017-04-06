@@ -38,8 +38,47 @@ class Plugin extends BasePlugin
         ;
     }
 
+    /**
+     * Small helper for calling declared methods with arguments.
+     *
+     * @param Container $container
+     * @param array|string $id
+     * @param mixed ...$args
+     * @return mixed
+     */
+    protected function call(Container $container, $id, ...$args)
+    {
+        $ret = $container->resolve($id);
 
+        if (is_array($ret) && $ret[0] instanceof \Closure && is_bool($ret[1])) {
+            return ($ret[1]) ? $ret[0]($container, ...$args) : $ret[0](...$args);
+        }
+
+        return null;
+    }
+
+    /**
+     * @param Container $container
+     */
     public function setContainer(Container $container)
     {
+
+        $container->method(
+            ['solr', 'get', 'ssh'],
+            function (Container $c, $env) {                
+                if (null !== ($ssh = $c->resolve(sprintf('solr.envs.%s.ssh', $env)))) {
+                    return $ssh;                   
+                } else {
+                    return $c->resolve(sprintf('envs.%s.ssh', $env));
+                }
+            }
+        );
+
+        $container->method(
+            ['solr', 'do', 'ssh'],
+            function (Container $c, $env) {
+                return 'ssh ' . $this->call($c, 'solr.get.ssh', $env);
+            }
+        );
     }
 }

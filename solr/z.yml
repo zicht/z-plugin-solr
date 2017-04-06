@@ -11,7 +11,7 @@ tasks:
             target_env: ? "development"
         do:
           - |
-                rsync -vr $(simulate ? "--dry-run") --inplace etc/solr/conf/* $(envs[target_env].ssh):$(solr.envs[target_env].prefix)/$(solr.envs[target_env].core)/conf/
+                rsync -vr $(simulate ? "--dry-run") --inplace etc/solr/conf/* $(solr.get.ssh(target_env)):$(solr.envs[target_env].prefix)/$(solr.envs[target_env].core)/conf/
           - @(if reload && !simulate) @solr.reload
           - @(if reload && simulate) echo "Would reload core $(solr.envs[target_env].core) at $(target_env)"
 
@@ -21,7 +21,7 @@ tasks:
         args:
             target_env: ?
         do: |
-            @(sh ssh(target_env))
+            @(sh solr.do.ssh(target_env))
                 curl -s "http://$(solr.envs[target_env].host):$(solr.envs[target_env].port)/solr/admin/cores?action=RELOAD&core=$(solr.envs[target_env].core)"
 
     solr.status:
@@ -30,7 +30,7 @@ tasks:
         args:
             target_env: ?
         do: |
-            @(sh ssh(target_env))
+            @(sh solr.do.ssh(target_env))
                 curl -s "http://$(solr.envs[target_env].host):$(solr.envs[target_env].port)/solr/admin/cores?action=STATUS&core=$(solr.envs[target_env].core)"
 
     solr.purge:
@@ -41,7 +41,7 @@ tasks:
         flags:
             local: false
         do: |
-            @(sh local ? SHELL : ssh(target_env))
+            @(sh local ? SHELL : solr.do.ssh(target_env))
                 cd $(envs[local ? "local" : target_env].root) && php app/console zicht:solr:purge --env=$(target_env)
 
     solr.reindex:
@@ -61,7 +61,7 @@ tasks:
         do:
             - @(if purge) @solr.purge
             - |
-                @(sh (local ? SHELL : ssh(target_env)))
+                @(sh (local ? SHELL : solr.do.ssh(target_env)))
                 @(for entity in entities)
                     cd $(local ? envs["local"].root : envs[target_env].root) && \
                         php app/console zicht:solr:reindex      \
