@@ -24,6 +24,7 @@ class Plugin extends BasePlugin
                                     ->scalarNode('prefix')->end()
                                     ->scalarNode('host')->defaultValue('localhost')->end()
                                     ->scalarNode('port')->defaultValue('8983')->end()
+                                    ->scalarNode('ssh')->end()
                                 ->end()
                             ->end()
                         ->end()
