@@ -1,6 +1,47 @@
 #@version ">=2.0.1"
 
 tasks:
+    solr.core.remove:
+        help: |
+            remove core.
+        flags:
+            purge: false
+        args:
+            target_env: ? "development"
+        do:
+            - curl -s "http://$(solr.envs[target_env].host):$(solr.envs[target_env].port)/solr/admin/cores?action=UNLOAD&core=$(solr.envs[target_env].core)" || exit 0
+            - @(if purge) ssh $(solr.get.ssh(target_env)) "rm -rf $(solr.envs[target_env].prefix)/$(solr.envs[target_env].core)"
+    solr.core.install:
+        help: |
+            Install a new core.
+        flags:
+            simulate: false
+        opts:
+            location: str("etc/solr")
+            config: str("solrconfig.xml")
+            schema: str("schema.xml")
+            dataDir: str("data")
+            classpath: str("/opt/solr/server/solr/mycores/")
+        args:
+            target_env: ? "development"
+        do: |
+            if (( "$$(find $(location) -type f -name $(schema) | wc -l )" <= 0 )); then
+                echo "Could not find $(schema) in $(location)."
+            else
+                 if (( "$$(ssh $(solr.get.ssh(target_env)) 'find -name $(solr.envs[target_env].core) | wc -l')" >= "1" )); then
+                    echo "Core $(solr.envs[target_env].core) already installed."
+                 else
+                    rsync -ruv $(simulate ? "--dry-run") \
+                        --exclude=core.properties \
+                        $$(echo "$(location)/"|sed s#//*#/#g) \
+                        $(solr.get.ssh(target_env)):$$(echo "$(solr.envs[target_env].prefix)/$(solr.envs[target_env].core)/"|sed s#//*#/#g) && \
+                    [[ "$(simulate)" -ne "1" ]] && \
+                        curl -s \
+                            "http://$(solr.envs[target_env].host):$(solr.envs[target_env].port)/solr/admin/cores?action=CREATE&name=$(solr.envs[target_env].core)&config=$(config)&schema=$(schema)&dataDir=$(dataDir)&instanceDir=$(classpath)$(solr.envs[target_env].core)" \
+                     || \
+                        echo "REQUEST_URL:: http://$(solr.envs[target_env].host):$(solr.envs[target_env].port)/solr/admin/cores?action=CREATE&name=$(solr.envs[target_env].core)&config=$(config)&schema=$(schema)&dataDir=$(dataDir)&instanceDir=$(classpath)$(solr.envs[target_env].core)"
+                 fi
+            fi
     solr.schema.install:
         help: |
             Installs a schema and optionally other config files in the remote prefix, and optionally reloads SOLR
