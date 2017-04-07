@@ -25,7 +25,7 @@ tasks:
         args:
             target_env: ? "development"
         do: |
-            if (( "$$(find etc/solr/ -type f -name $(schema) | wc -l )" <= 0 )); then
+            if (( "$$(find $(location) -type f -name $(schema) | wc -l )" <= 0 )); then
                 echo "Could not find $(schema) in $(location)."
             else
                  if (( "$$(ssh $(solr.get.ssh(target_env)) 'find -name $(solr.envs[target_env].core) | wc -l')" >= "1" )); then
