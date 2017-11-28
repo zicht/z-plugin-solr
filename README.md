@@ -2,5 +2,6 @@
 
 Provides a bridge for commands related to `zicht/solr-bundle`.
 
-# Maintainer(s)
-* Rik van der Kemp <rik@zicht.nl>
+# Maintainers
+* Philip Bergman <philip@zicht.nl>
+* Michael Roterman <michael@zicht.nl>
