@@ -4,13 +4,15 @@ tasks:
     solr.core.remove:
         help: |
             remove core.
+        opts:
+            core:
         flags:
             purge: false
         args:
             target_env: ? "development"
-        do:
-            - curl -s "http://$(solr.envs[target_env].host):$(solr.envs[target_env].port)/solr/admin/cores?action=UNLOAD&core=$(solr.envs[target_env].core)" || exit 0
-            - @(if purge) ssh $(solr.get.ssh(target_env)) "rm -rf $(solr.envs[target_env].prefix)/$(solr.envs[target_env].core)"
+        do: |
+            curl -s "http://$(solr.envs[target_env].host):$(solr.envs[target_env].port)/solr/admin/cores?action=UNLOAD&core=$(core ?: solr.envs[target_env].core)" || exit 0
+            [ "$(purge)" -eq "1" ] && ssh $(solr.get.ssh(target_env)) "rm -rf $(solr.envs[target_env].prefix)/$(core ?: solr.envs[target_env].core)"
     solr.core.install:
         help: |
             Install a new core.
@@ -21,6 +23,7 @@ tasks:
             config: str("solrconfig.xml")
             schema: str("schema.xml")
             dataDir: str("data")
+            core:
             classpath: str("/opt/solr/server/solr/mycores/")
         args:
             target_env: ? "development"
@@ -28,18 +31,18 @@ tasks:
             if (( "$$(find $(location) -type f -name $(schema) | wc -l )" <= 0 )); then
                 echo "Could not find $(schema) in $(location)."
             else
-                 if (( "$$(ssh $(solr.get.ssh(target_env)) 'find -name $(solr.envs[target_env].core) | wc -l')" >= "1" )); then
-                    echo "Core $(solr.envs[target_env].core) already installed."
+                 if (( "$$(ssh $(solr.get.ssh(target_env)) 'find -name $(core ?: solr.envs[target_env].core) | wc -l')" >= "1" )); then
+                    echo "Core $(core ?: solr.envs[target_env].core) already installed."
                  else
                     rsync -ruv $(simulate ? "--dry-run") \
                         --exclude=core.properties \
                         $$(echo "$(location)/"|sed s#//*#/#g) \
-                        $(solr.get.ssh(target_env)):$$(echo "$(solr.envs[target_env].prefix)/$(solr.envs[target_env].core)/"|sed s#//*#/#g) && \
+                        $(solr.get.ssh(target_env)):$$(echo "$(solr.envs[target_env].prefix)/$(core ?: solr.envs[target_env].core)/"|sed s#//*#/#g) && \
                     [[ "$(simulate)" -ne "1" ]] && \
                         curl -s \
-                            "http://$(solr.envs[target_env].host):$(solr.envs[target_env].port)/solr/admin/cores?action=CREATE&name=$(solr.envs[target_env].core)&config=$(config)&schema=$(schema)&dataDir=$(dataDir)&instanceDir=$(classpath)$(solr.envs[target_env].core)" \
+                            "http://$(solr.envs[target_env].host):$(solr.envs[target_env].port)/solr/admin/cores?action=CREATE&name=$(core ?: solr.envs[target_env].core)&config=$(config)&schema=$(schema)&dataDir=$(dataDir)&instanceDir=$(classpath)$(core ?: solr.envs[target_env].core)" \
                      || \
-                        echo "REQUEST_URL:: http://$(solr.envs[target_env].host):$(solr.envs[target_env].port)/solr/admin/cores?action=CREATE&name=$(solr.envs[target_env].core)&config=$(config)&schema=$(schema)&dataDir=$(dataDir)&instanceDir=$(classpath)$(solr.envs[target_env].core)"
+                        echo "REQUEST_URL:: http://$(solr.envs[target_env].host):$(solr.envs[target_env].port)/solr/admin/cores?action=CREATE&name=$(core ?: solr.envs[target_env].core)&config=$(config)&schema=$(schema)&dataDir=$(dataDir)&instanceDir=$(classpath)$(core ?: solr.envs[target_env].core)"
                  fi
             fi
     solr.schema.install:
