@@ -86,7 +86,7 @@ tasks:
             local: false
         do: |
             @(sh local ? SHELL : solr.do.ssh(target_env))
-                cd $(envs[local ? "local" : target_env].root) && php app/console zicht:solr:purge --env=$(target_env)
+                cd $(envs[local ? "local" : target_env].root) && $(defaults("php_bin", target_env, "php")) $(symfony.console) zicht:solr:purge --env=$(target_env)
 
     solr.reindex:
         help: |
@@ -108,7 +108,7 @@ tasks:
                 @(sh (local ? SHELL : solr.do.ssh(target_env)))
                 @(for entity in entities)
                     cd $(local ? envs["local"].root : envs[target_env].root) && \
-                        php app/console zicht:solr:reindex      \
+                        $(defaults("php_bin", target_env, "php")) $(symfony.console) zicht:solr:reindex      \
                             $(offset ? cat("--offset ", offset)) \
                             $(limit ? cat("--limit ", limit))   \
                             $(escape entity) $(!VERBOSE ? "-q")      \
