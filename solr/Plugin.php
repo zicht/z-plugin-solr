@@ -25,6 +25,7 @@ class Plugin extends BasePlugin
                                     ->scalarNode('host')->defaultValue('localhost')->end()
                                     ->scalarNode('port')->defaultValue('8983')->end()
                                     ->scalarNode('ssh')->end()
+                                    ->scalarNode('classpath')->defaultValue('/opt/solr/server/solr/mycores/')->end()
                                 ->end()
                             ->end()
                         ->end()

@@ -40,9 +40,9 @@ tasks:
                         $(solr.get.ssh(target_env)):$$(echo "$(solr.envs[target_env].prefix)/$(core ?: solr.envs[target_env].core)/"|sed s#//*#/#g) && \
                     [[ "$(simulate)" -ne "1" ]] && \
                         curl -s \
-                            "http://$(solr.envs[target_env].host):$(solr.envs[target_env].port)/solr/admin/cores?action=CREATE&name=$(core ?: solr.envs[target_env].core)&config=$(config)&schema=$(schema)&dataDir=$(dataDir)&instanceDir=$(classpath)$(core ?: solr.envs[target_env].core)" \
+                            "http://$(solr.envs[target_env].host):$(solr.envs[target_env].port)/solr/admin/cores?action=CREATE&name=$(core ?: solr.envs[target_env].core)&config=$(config)&schema=$(schema)&dataDir=$(dataDir)&instanceDir=$(solr.envs[target_env].classpath)$(core ?: solr.envs[target_env].core)" \
                      || \
-                        echo "REQUEST_URL:: http://$(solr.envs[target_env].host):$(solr.envs[target_env].port)/solr/admin/cores?action=CREATE&name=$(core ?: solr.envs[target_env].core)&config=$(config)&schema=$(schema)&dataDir=$(dataDir)&instanceDir=$(classpath)$(core ?: solr.envs[target_env].core)"
+                        echo "REQUEST_URL:: http://$(solr.envs[target_env].host):$(solr.envs[target_env].port)/solr/admin/cores?action=CREATE&name=$(core ?: solr.envs[target_env].core)&config=$(config)&schema=$(schema)&dataDir=$(dataDir)&instanceDir=$(solr.envs[target_env].classpath)$(core ?: solr.envs[target_env].core)"
                  fi
             fi
     solr.schema.install:
