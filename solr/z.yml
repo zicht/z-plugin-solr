@@ -85,7 +85,7 @@ tasks:
         flags:
             local: false
         do: |
-            @(sh local ? SHELL : solr.do.ssh(target_env))
+            @(sh (local ? SHELL : cat("ssh ", envs[target_env].ssh)))
                 cd $(envs[local ? "local" : target_env].root) && $(defaults("php_bin", target_env, "php")) $(symfony.console) zicht:solr:purge --env=$(target_env)
 
     solr.reindex:
@@ -102,10 +102,9 @@ tasks:
             limit: 0
             offset: 0
         do:
-            - echo -e "\n\e[4mThis command is deprecated. Reindexing all entities can be done with \"app/console zicht:solr:reindex --no-debug\" as of 3.3.0 or 4.0.2\e[24m\n"
             - @(if purge) @solr.purge
             - |
-                @(sh (local ? SHELL : solr.do.ssh(target_env)))
+                @(sh (local ? SHELL : cat("ssh ", envs[target_env].ssh)))
                 cd $(local ? envs["local"].root : envs[target_env].root) && \
                     $(defaults("php_bin", target_env, "php")) $(symfony.console) zicht:solr:reindex      \
                         $(offset ? cat("--offset ", offset)) \
