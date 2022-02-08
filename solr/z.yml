@@ -56,8 +56,8 @@ tasks:
         do:
           - |
                 rsync -vr $(simulate ? "--dry-run") --inplace etc/solr/conf/* $(solr.get.ssh(target_env)):$(solr.envs[target_env].prefix)/$(solr.envs[target_env].core)/conf/
-          - @(if reload && !simulate) @solr.reload
-          - @(if reload && simulate) echo "Would reload core $(solr.envs[target_env].core) at $(target_env)"
+          - '@(if reload && !simulate) @solr.reload'
+          - '@(if reload && simulate) echo "Would reload core $(solr.envs[target_env].core) at $(target_env)"'
 
     solr.reload:
         help: |
@@ -102,7 +102,7 @@ tasks:
             limit: 0
             offset: 0
         do:
-            - @(if purge) @solr.purge
+            - '@(if purge) @solr.purge'
             - |
                 @(sh (local ? SHELL : cat("ssh ", envs[target_env].ssh)))
                 cd $(local ? envs["local"].root : envs[target_env].root) && \
@@ -126,7 +126,7 @@ tasks:
             local: false
             purge: false
         do:
-            - @(if purge) @solr.purge
+            - '@(if purge) @solr.purge'
             - |
                 @(for v in range((total/per_batch)-1, 0)) 
                 $(z.cmd) $(z.opts) solr:reindex $(target_env)   \
