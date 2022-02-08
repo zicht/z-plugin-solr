@@ -3,3 +3,4 @@
 Provides a bridge for commands related to `zicht/solr-bundle`.
 
 # Maintainers
+* Jochem Klaver <jochem@zicht.nl>
